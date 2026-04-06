@@ -1,0 +1,7 @@
+models/
+build/
+venv/
+*.gguf
+*.wav
+*.cache
+*.log
