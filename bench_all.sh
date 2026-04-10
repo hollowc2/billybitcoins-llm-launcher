@@ -4,28 +4,10 @@
 #   Runs llama-bench across all models and prints a summary
 # ============================================================
 
-MODELS_DIR="./models"
-ALL_LAYERS=999
-BENCH_BIN="./build/bin/llama-bench"
-BENCH_CACHE="./bench_results.cache"
-REPETITIONS=3
-PROMPT_TOKENS=512
-GEN_TOKENS=128
-THREADS=8
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
+source "$SCRIPT_DIR/lib/ui.sh"
 
-export ROCM_PATH=/opt/rocm-7.2.0
-export LD_LIBRARY_PATH=$ROCM_PATH/lib:$LD_LIBRARY_PATH
-export HSA_OVERRIDE_GFX_VERSION=11.0.0
-
-# ---- Model registry ----------------------------------------
-# Format: "display_name|file|layers|notes"
-MODELS=(
-    "Qwen2.5-Coder 14B|Qwen2.5-Coder-14B-Instruct-Q5_K_M.gguf|40|Best balance of speed & quality"
-    "Qwen2.5-Coder 7B|Qwen2.5-Coder-7B-Instruct-Q8_0.gguf|$ALL_LAYERS|Fastest / lightest (Q8_0)"
-    "Qwen3-Coder 30B-A3B|Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf|29|Strongest (MoE, partial offload)"
-    "Qwen3.5 9B Instruct|Qwen3.5-9B-Q5_K_M.gguf|19|Multimodal — text + vision"
-    "DeepSeek-Coder-V2-Lite|DeepSeek-Coder-V2-Lite-Instruct-Q4_K_M.gguf|$ALL_LAYERS|16B MoE, 2.4B active (Q4_K_M)"
-)
 
 # ---- Helpers -----------------------------------------------
 parse_ts() {
@@ -43,26 +25,9 @@ bar() {
 # ---- Results storage ---------------------------------------
 declare -a RES_NAME RES_FILE RES_SIZE RES_NGL RES_PP RES_TG RES_NOTE RES_STATUS
 
-
-# ============================================================
-#   HEADER
-# ============================================================
-clear
-echo ""
-echo "  ██████╗ ██╗██╗     ██╗  ██╗   ██╗"
-echo "  ██╔══██╗██║██║     ██║  ╚██╗ ██╔╝"
-echo "  ██████╔╝██║██║     ██║   ╚████╔╝ "
-echo "  ██╔══██╗██║██║     ██║    ╚██╔╝  "
-echo "  ██████╔╝██║███████╗███████╗██║   "
-echo "  ╚═════╝ ╚═╝╚══════╝╚══════╝╚═╝  "
-echo ""
-echo "  BillyBitcoins LLM Launcher — Benchmark Suite"
-echo "  ─────────────────────────────────────────────────────"
-echo "  Hardware  :  RX 7700 XT  |  12 GB VRAM"
-echo "  Backend   :  ROCm 7.2  +  llama.cpp"
-echo "  Settings  :  Prompt $PROMPT_TOKENS tokens  |  Generate $GEN_TOKENS tokens  |  $REPETITIONS runs avg"
-echo "  ─────────────────────────────────────────────────────"
-echo ""
+print_banner \
+    "BillyBitcoins LLM Launcher — Benchmark Suite" \
+    "Settings  :  Prompt $PROMPT_TOKENS tokens  |  Generate $GEN_TOKENS tokens  |  $REPETITIONS runs avg"
 
 
 # ============================================================
@@ -97,7 +62,7 @@ for entry in "${MODELS[@]}"; do
     echo -n "         Running benchmark "
 
     raw_output=$(
-        "$BENCH_BIN" \
+        "$BUILD_DIR/llama-bench" \
             -m "$model_path" \
             -ngl "$layers" \
             -p "$PROMPT_TOKENS" \
@@ -191,6 +156,7 @@ echo "  TG = token generation  (what you feel as response speed)"
 echo "  Bar charts normalized to fastest result."
 echo "  ══════════════════════════════════════════════════════════════════════════════════════════"
 echo ""
+
 
 # ============================================================
 #   WINNER CALLOUT
