@@ -1,6 +1,6 @@
 # BillyBitcoins LLM Launcher
 
-Interactive TUI launcher for [llama.cpp](https://github.com/ggerganov/llama.cpp) on AMD GPUs via ROCm. Pick a network mode, pick a model, and get an OpenAI-compatible REST endpoint running in seconds. Includes a benchmark suite that caches results and displays PP/TG speeds alongside each model.
+Interactive TUI launcher for [llama.cpp](https://github.com/ggerganov/llama.cpp) on AMD GPUs via ROCm. Pick a connection mode, pick a model, and get an OpenAI-compatible REST endpoint running in seconds. Includes a benchmark suite that caches results and displays PP/TG speeds alongside each model.
 
 ```
   ██████╗ ██╗██╗     ██╗  ██╗   ██╗
@@ -29,8 +29,6 @@ billybitcoins-llm-launcher/
     └── server.sh    # Server helpers: cleanup trap, launch_server()
 ```
 
-Both `start_llm.sh` and `bench_all.sh` source `config.sh` and the relevant `lib/` files at startup.
-
 ## Prerequisites
 
 1. **llama.cpp** built with ROCm support. Set `BUILD_DIR` in `config.sh` to your build output path:
@@ -58,19 +56,28 @@ The TUI walks through four steps:
 
 | Step | What happens |
 |------|-------------|
-| 1 | Choose network mode: local (`127.0.0.1`), Tailscale, or run benchmarks |
+| 1 | Choose how to connect — see options below |
 | 2 | Pick a model from the registry (PP/TG speeds shown if cache exists) |
 | 3 | Server launches; health-check loop polls `/health` until ready |
-| 4 | Active model menu: open Web UI, launch opencode, use API directly, change model, or quit |
+| 4 | Active menu: open Web Chat, launch opencode, view API info, change model, or quit |
 
-ESC at Step 1 exits. ESC at Step 2 returns to Step 1. ESC or choice 4 at Step 4 stops the server and returns to Step 2.
+**Navigation:** ESC at Step 1 exits. ESC at Step 2 returns to Step 1. ESC or choice 4 at Step 4 stops the server and returns to Step 2.
 
-**Run benchmarks:**
+### Step 1 — Connection modes
+
+| Option | What it does |
+|--------|-------------|
+| **1 — Local** | Starts a server on `127.0.0.1` (only accessible from this machine) |
+| **2 — Tailscale** | Starts a server bound to your Tailscale IP (accessible over your VPN) |
+| **3 — Custom URL** | Skips server launch — connects to a server that's already running at a URL you enter. Defaults to `http://127.0.0.1:8012/v1/chat/completions` |
+| **4 — Benchmarks** | Runs `llama-bench` across all models and saves results to cache (~4 min) |
+
+**Run benchmarks separately:**
 ```bash
 ./bench_all.sh
 ```
 
-Runs `llama-bench` across all registered models and saves results to `bench_results.cache`. The launcher reads this cache on startup and shows PP/TG token speeds in the model table. You can also trigger a benchmark run directly from Step 1 (choice 3).
+Runs `llama-bench` across all registered models and saves results to `bench_results.cache`. The launcher reads this cache on startup and shows PP/TG token speeds in the model table. You can also trigger this from Step 1 (choice 4).
 
 ## Configuration
 
@@ -81,7 +88,7 @@ All machine-specific values live in `config.sh`:
 | `HSA_OVERRIDE_GFX_VERSION` | `11.0.0` (RX 7700 XT / gfx1101) | `rocminfo \| grep gfx` |
 | `ROCM_PATH` | `/opt/rocm-7.2.0` | `ls /opt/ \| grep rocm` |
 | `BUILD_DIR` | `/home/corey/Desktop/llama.cpp/build/bin` | path to your llama.cpp build |
-| `PORT` | `8012` | — |
+| `PORT` | `8012` | change to any free port |
 
 ## Model Registry
 
@@ -90,12 +97,11 @@ The `MODELS` array is defined **once** in `config.sh` and picked up automaticall
 ```bash
 # "display_name|filename.gguf|gpu_layers|notes"
 MODELS=(
-    "Qwen2.5-Coder 14B|Qwen2.5-Coder-14B-Instruct-Q5_K_M.gguf|40|Best balance of speed & quality"
-    "My New Model|my-model-Q4_K_M.gguf|32|Some notes"
+    "My Model|my-model-Q4_K_M.gguf|32|Some notes"
 )
 ```
 
-- `gpu_layers` is passed to `--n-gpu-layers`; use `999` (or the `$ALL_LAYERS` constant) to offload everything
+- `gpu_layers` is passed to `--n-gpu-layers`; use `999` (or the `$ALL_LAYERS` constant) to offload everything to GPU
 - Adding or removing a model only requires editing this array — no other files need to change
 
 Current models:
@@ -117,10 +123,27 @@ After running `bench_all.sh`, results are saved to `bench_results.cache`:
 filename.gguf|PP_value|TG_value
 ```
 
-- **PP** — prompt-processing speed (tokens/sec); how fast the GPU ingests your prompt
-- **TG** — token-generation speed (tokens/sec); how fast tokens stream back
+- **PP** — prompt-processing speed (tokens/sec): how fast the GPU reads your input
+- **TG** — token-generation speed (tokens/sec): how fast tokens stream back to you
 
 The cache is machine-specific and excluded from version control.
+
+## Connecting Your Own Client
+
+When a server is running, the API endpoint is OpenAI-compatible. You can point any OpenAI client at it:
+
+```bash
+# Quick test from the terminal
+curl http://127.0.0.1:8012/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{"model":"local","messages":[{"role":"user","content":"Hello!"}]}'
+```
+
+Set these environment variables in any app that supports OpenAI-compatible APIs:
+```
+OPENAI_BASE_URL=http://127.0.0.1:8012/v1
+OPENAI_API_KEY=local
+```
 
 ## opencode Integration
 
