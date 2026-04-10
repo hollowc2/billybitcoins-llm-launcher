@@ -10,7 +10,6 @@ export LD_LIBRARY_PATH=$ROCM_PATH/lib:$LD_LIBRARY_PATH
 export HSA_OVERRIDE_GFX_VERSION=11.0.0   # keeps gfx1101 happy (RX 7700 XT)
 
 # ---- Network -----------------------------------------------
-TAILSCALE_IP="100.84.150.97"
 PORT=8012
 
 # ---- Paths -------------------------------------------------

@@ -81,7 +81,6 @@ All machine-specific values live in `config.sh`:
 | `HSA_OVERRIDE_GFX_VERSION` | `11.0.0` (RX 7700 XT / gfx1101) | `rocminfo \| grep gfx` |
 | `ROCM_PATH` | `/opt/rocm-7.2.0` | `ls /opt/ \| grep rocm` |
 | `BUILD_DIR` | `/home/corey/Desktop/llama.cpp/build/bin` | path to your llama.cpp build |
-| `TAILSCALE_IP` | `100.84.150.97` | `tailscale ip` |
 | `PORT` | `8012` | — |
 
 ## Model Registry

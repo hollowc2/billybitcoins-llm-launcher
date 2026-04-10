@@ -37,7 +37,7 @@ while true; do
     echo "             (ESC to quit)"
     echo ""
     echo "    1)  Local only  —  127.0.0.1  (just this machine)"
-    echo "    2)  Tailscale   —  $TAILSCALE_IP  (remote access)"
+    echo "    2)  Tailscale   —  enter IP  (remote access)"
     echo "    3)  Run benchmark suite  (~4 min)"
     echo ""
     read_key "  Your choice [1/2/3]: "
@@ -51,6 +51,12 @@ while true; do
             MODE_DESC="Local (127.0.0.1)"
             ;;
         2)
+            printf "  Enter your Tailscale IP: "
+            read -r TAILSCALE_IP
+            if [[ -z "$TAILSCALE_IP" ]]; then
+                echo "  ✗  No IP entered."
+                continue
+            fi
             HOST="$TAILSCALE_IP"
             MODE_DESC="Tailscale ($TAILSCALE_IP)"
             ;;

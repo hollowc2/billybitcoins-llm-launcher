@@ -51,7 +51,6 @@ All machine-specific values are in `config.sh`:
 |---|---|---|
 | `HSA_OVERRIDE_GFX_VERSION` | `11.0.0` (RX 7700 XT / gfx1101) | `rocminfo \| grep gfx` |
 | `ROCM_PATH` | `/opt/rocm-7.2.0` | `ls /opt/ \| grep rocm` |
-| `TAILSCALE_IP` | `100.84.150.97` | `tailscale ip` |
 | `PORT` | `8012` | — |
 
 ## Model registry
@@ -78,7 +77,7 @@ The cache is machine-specific and excluded from version control (`.gitignore`).
 
 ## Key implementation details
 
-- **Health check loop** (`lib/server.sh` → `launch_server()`): polls `http://$HOST:$PORT/health` every 2 seconds with a `POLL_TIMEOUT=150s` ceiling; crashes are detected via `kill -0 $SERVER_PID`
+- **Health check loop** (`lib/server.sh` → `launch_server()`): polls `http://$HOST:$PORT/health` every 2 seconds with a `POLL_TIMEOUT=300s` ceiling; crashes are detected via `kill -0 $SERVER_PID`
 - **Cleanup trap** (`lib/server.sh`): `SIGINT`/`SIGTERM` always kills `$SERVER_PID` on exit
 - **Navigation**: ESC at Step 1 exits; ESC at Step 2 goes back to Step 1; ESC/choice 4 at Step 4 stops the server and returns to Step 2
 - **Server log**: stdout/stderr from `llama-server` goes to `$LOG_FILE` (`./llama_server.log`); last 30 lines shown on crash
