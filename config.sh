@@ -15,7 +15,7 @@ PORT=8012
 
 # ---- Paths -------------------------------------------------
 MODELS_DIR="/mnt/Files/Models"
-BUILD_DIR="./build/bin"
+BUILD_DIR="/home/corey/Desktop/llama.cpp/build/bin"
 BENCH_CACHE="./bench_results.cache"
 LOG_FILE="./llama_server.log"
 
@@ -23,7 +23,7 @@ LOG_FILE="./llama_server.log"
 THREADS=8
 CTX=32768
 ALL_LAYERS=999      # llama-server clamps this to actual layer count
-POLL_TIMEOUT=150    # give up waiting for health check after N seconds
+POLL_TIMEOUT=300    # give up waiting for health check after N seconds
 
 # ---- Benchmark defaults ------------------------------------
 REPETITIONS=3
